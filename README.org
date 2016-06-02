@@ -3,7 +3,7 @@
   1. [[http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html][Install SSH (Windows only)]]
   2. [[vm_setup.org][VM Setup Instructions]]
   3. [[start_jupyter.org][Start Jupyter]]
-  4. [[vm_pause.org][Pause Your VM]]
+ 
 * Resources
 Here is a list of resources relevant to this workshop, for future reference.
 ** This Course
