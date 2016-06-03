@@ -14,13 +14,6 @@ RUN apt-get update && \
     gcc && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Julia dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    julia \
-    libnettle4 && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 USER jovyan
 
 # R packages including IRKernel which gets installed globally.
@@ -45,15 +38,61 @@ RUN conda config --add channels r && \
     'r-rcurl=1.95*' \
     'r-randomforest=4.6*' && conda clean -tipsy
 
-# Install IJulia packages as jovyan and then move the kernelspec out
-# to the system share location. Avoids problems with runtime UID change not
-# taking effect properly on the .local folder in the jovyan home dir.
-RUN julia -e 'Pkg.add("IJulia")' && \
-    mv /home/$NB_USER/.local/share/jupyter/kernels/* $CONDA_DIR/share/jupyter/kernels/ && \
-    chmod -R go+rx $CONDA_DIR/share/jupyter && \
-    rm -rf /home/$NB_USER/.local/share
+RUN echo "r <- getOption('repos'); r['CRAN'] <- 'http://cran.revolutionanalytics.com/'; options(repos = r)" > ~/.Rprofile
+RUN Rscript -e "source('http://bioconductor.org/biocLite.R');biocLite(suppressUpdates = FALSE);biocLite('ShortRead', suppressUpdates = FALSE);biocLite('phyloseq', suppressUpdates = FALSE)"
 
-# Show Julia where conda libraries are
-# Add essential packages
-#RUN echo 'push!(Sys.DL_LOAD_PATH, "/opt/conda/lib")' > /home/$NB_USER/.juliarc.jl && \
-#    julia -e 'Pkg.add("Gadfly")' && julia -e 'Pkg.add("RDatasets")' && julia -F -e 'Pkg.add("HDF5")'
+# Install Bash Kernel
+RUN pip install --user --no-cache-dir bash_kernel && \
+    python -m bash_kernel.install
+
+USER root
+#
+###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Install Less
+###~~~~~~~~~~~~
+ RUN apt-get update && \
+     apt-get install -y --no-install-recommends \
+     less \
+     && apt-get clean && \
+     rm -rf /var/lib/apt/lists/*
+###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## make, git
+RUN apt-get -q -y  install make
+RUN apt-get -q -y  install git
+#
+#
+### libxml2
+RUN apt-get update
+RUN apt-get -q -y  install libxml2-dev
+#
+### ea-utils (fastq-mcf)
+RUN apt-get -q -y  install libgsl0-dev
+RUN wget "https://drive.google.com/uc?export=download&id=0B7KhouP0YeRAc2xackxzRnFrUEU" -O ea-utils.1.1.2-806.tar.gz
+RUN tar -xvf ea-utils.1.1.2-806.tar.gz
+RUN cd ea-utils.1.1.2-806; make; cp -a fastq-mcf /usr/local/bin/; cd ~;rm -rf ea-utils.1.1.2-806 ea-utils.1.1.2-806.tar.gz
+#
+### fastqc
+RUN apt-get -q -y  install fastqc default-jre
+#
+### sra-toolkit
+## apt-get -q -y  install sra-toolkit
+RUN wget http://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.4.3/sratoolkit.2.4.3-ubuntu64.tar.gz
+RUN tar -zxf sratoolkit.2.4.3-ubuntu64.tar.gz
+RUN cp -r sratoolkit.2.4.3-ubuntu64/bin/*  /usr/local/bin/
+RUN rm sratoolkit.2.4.3-ubuntu64.tar.gz
+RUN rm -r sratoolkit.2.4.3-ubuntu64
+RUN vdb-config --restore-defaults
+RUN echo "test sra-toolkit with the following command:"
+RUN echo "fastq-dump -X 5 -Z SRR390728"
+
+RUN conda install --quiet --yes -n python2 --channel https://conda.anaconda.org/Biobuilds htseq
+RUN conda install --quiet --yes -n python2 --channel https://conda.anaconda.org/Biobuilds pysam
+
+USER root
+## tophat, bowtie2, bwa, samtools^M
+RUN apt-get update && \
+     apt-get install -q -y tophat \
+     bwa \
+     samtools \
+     && apt-get clean
