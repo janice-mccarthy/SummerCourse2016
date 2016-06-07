@@ -43,7 +43,7 @@ If everything worked, you should now have a Jupyter server running on your virtu
 4. Click on "Proceed to HOSTNAME.cloudapp.net (unsafe)"
 5. Enter your *Jupyter Password* (the one you supplied to the "docker run" command
 6. Your Jupyter Home Page should be now open showing several files and directories.  Click on "course_overview.ipynb" to open this notebook, which provides links to different components of the Workshop
-7. In the Workshop Overview notebook, click on the "Update Notebooks" link and follow the directions there.
+7. In the Course Overview notebook, click on the "Update Notebooks" link and follow the directions there.
 8. All of the computing for the workshop will take place within Jupyter, through your webbrowser.
 
 
