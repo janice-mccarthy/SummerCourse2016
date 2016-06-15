@@ -11,6 +11,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     fonts-dejavu \
     gfortran \
+    libxrender1 \
     gcc && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -46,6 +47,9 @@ RUN pip install --user --no-cache-dir bash_kernel && \
     python -m bash_kernel.install
 
 USER root
+
+RUN echo "jpeg 8*" >> /opt/conda/conda-meta/pinned
+RUN conda update --all -y
 #
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Install Less
@@ -66,11 +70,11 @@ RUN apt-get -q -y  install git
 RUN apt-get update
 RUN apt-get -q -y  install libxml2-dev
 #
-### ea-utils (fastq-mcf)
+### ea-utils (fastq-mcf,etc.)
 RUN apt-get -q -y  install libgsl0-dev
 RUN wget "https://drive.google.com/uc?export=download&id=0B7KhouP0YeRAc2xackxzRnFrUEU" -O ea-utils.1.1.2-806.tar.gz
 RUN tar -xvf ea-utils.1.1.2-806.tar.gz
-RUN cd ea-utils.1.1.2-806; make; cp -a fastq-mcf /usr/local/bin/; cd ~;rm -rf ea-utils.1.1.2-806 ea-utils.1.1.2-806.tar.gz
+RUN cd ea-utils.1.1.2-806; make; cp -a fastq-*   /usr/local/bin/; cd ~;rm -rf ea-utils.1.1.2-806 ea-utils.1.1.2-806.tar.gz
 #
 ### fastqc
 RUN apt-get -q -y  install fastqc default-jre
